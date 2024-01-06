@@ -1,0 +1,199 @@
+﻿@using Application.Service.Users.UserGroups
+@model List<UserGroup_Dto>
+@{
+    ViewData["Title"] = "Home Page";
+}
+<!-- Modal -->
+<div class="disconnected">
+    <div>
+        <br />
+        <p>اتصال شما به سرور قطع شده</p>
+        
+        <p>در حال برقراری ارتباط مجدد...</p>
+        <br />
+    </div>
+</div>
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <form class="modal-content" enctype="multipart/form-data" onsubmit="insertGroup(event)">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">ایجاد گروه</h5>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="GroupName" class="form-control" placeholder="نام گروه را وارد کنید" />
+                <br />
+                <input type="file" name="image" accept="image/*" class="form-control" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                <button type="submit" class="btn btn-success">ایجاد گروه</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-8 chat-content">
+        <div class="header" style="display:none">
+            <img src="img/Default.jpg" />
+            <h2>علی</h2>
+        </div>
+        <div class="chats">
+
+        </div> 
+        <div class="footer"style="display:none" >
+            <form onsubmit="sendmessage(event)">
+                <input id="messageText" type="text" class="form-control" placeholder="متن خود را وارد کنید">
+                <button class="btn btn-success">
+                    ارسال
+                    <i class="fa fa-send"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="col-4 rooms">
+        <ul>
+            <li>
+                <form>
+                    <input type="text" placeholder="جستجو کنید" class="form-control" id="Search_input" onkeyup="search()" />
+                    <i class="fa fas fa-search"></i>
+                </form>
+            </li>
+            <li id="Search_Result" style="display:none">
+                <ul>
+
+                </ul>
+            </li>
+            <li id="User_Groups">
+                <ul>
+                    <li>
+                        <button data-toggle="modal" data-target="#exampleModalCenter" class="btn btn-success">
+                            <i class="fa fa-plus"></i>
+                            ایجاد گروه جدید
+                        </button>
+                    </li>
+                    @foreach (var item in Model)
+                    {
+                        <li onclick="joininGroup('@item.Token')">
+                            @item.GroupName
+                            <img src="/GroupImage/@item.ImageName" />
+                            @if (item.LastChat != null)
+                            {
+                                var time = item.LastChat.createDate;
+                                <span>@time.ToString("HH:mm dd/MM") </span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/signalrcustom.js"></script>
+    <script>
+        $(document).ready(function () {
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+        });
+        var connection = new signalR.HubConnectionBuilder().withUrl("/Chat").build();
+        var currentGroupId = 0;
+        var userId = 0;
+        connection.on("Welcome", function (id) {
+            userId = id;
+        });
+        connection.on("ReciveMesage", Recive);
+        function Recive(chat) {
+
+            $("#messageText").val('');
+            if (userId === chat.userId) {
+                $(".chats").append(`
+                    <div class="chat-me">
+                      <div class="chat">
+                       <p>${chat.chatBody}</p>
+                       <span>${chat.createDate}</span>
+                      </div>
+                    </div>
+                  `);
+            }
+            else {
+                $(".chats").append(`
+                    <div class="chat-you">
+                      <div class="chat">
+                       <span>${chat.personName}</span>
+                         <p>${chat.chatBody}</p>
+                        <span>${chat.createDate}</span>
+                      </div>
+                    </div>
+                  `);
+            }
+
+        }
+        connection.on("joinGroup", joined)
+        connection.on("NewGroup", appenGroup);
+        connection.on("ReciveNotification",sendNotification)
+        connection.start();
+
+        function sendNotification(chat) {
+            if (Notification.permission === "granted") {
+                console.log(currentGroupId);
+                console.log(chat.groupId);
+                if (currentGroupId !== chat.groupId) {
+                    var notification = new Notification(chat.groupName, {
+                        body: chat.chatBody,
+                    });
+                }
+            }
+        }
+        function joined(group, chats) {
+            $(".header").css("display", "block");
+            $(".footer").css("display", "block");
+            $(".header h2").html(group.groupTitle);
+            $(".header img").attr("src", "/GroupImage/" + group.imageName);
+            currentGroupId = group.id;
+            $(".chats").html("");
+            chats.forEach(function (element) {
+                if (userId === element.userId) {
+                    $(".chats").append(`
+                <div class="chat-me">
+                  <div class="chat">
+                    <p>${element.text}</p>
+                    <span>${element.date}</span>
+                  </div>
+                </div>
+              `);
+                } else {
+                    $(".chats").append(`
+                <div class="chat-you">
+                  <div class="chat">
+                    <span>${element.personName}</span>
+                    <br>
+                    <p>${element.text}</p>
+                    <span>${element.date}</span>
+                  </div>
+                </div>
+              `);
+                }
+            });
+        }
+        async function Start() {
+            try {
+                
+                await connection.start();
+                $(".disconnected").hide();
+            }
+            catch (e) {
+                $(".disconnected").show();
+                setTimeout(Start,3000);
+            }
+            
+        }
+        connection.onclose(Start);
+       
+        function joininGroup(token) {
+            connection.invoke("joinGroup", token, currentGroupId);
+        }
+    </script>
+}

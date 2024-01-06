@@ -1,0 +1,10 @@
+﻿@using Application.Service.Users
+<div id="login" class="auth">
+   <partial name="auth/_Login" model="new Login_Dto()"/>
+</div>
+<div id="register" class="auth" style="display: none;">
+   <partial name="auth/_Register" model="new Register_Dto()"/>
+</div>
+@section Scripts{
+    <Partial name="_ValidationScriptsPartial" />
+}
