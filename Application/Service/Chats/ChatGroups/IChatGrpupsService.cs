@@ -33,7 +33,8 @@ namespace Application.Service.Chats.ChatGroups
 
         public async Task<ResultDto<ChatGroup>> GetGroupBy(long id)
         {
-            var result = await GetById<ChatGroup>(id);
+            var result = await Table<ChatGroup>()
+                .Include(c => c.User).Include(c => c.Reciver).Where(c=>c.Id==id).FirstOrDefaultAsync();
             if (result==null)
             {
                 return new ResultDto<ChatGroup>()
@@ -53,6 +54,7 @@ namespace Application.Service.Chats.ChatGroups
         public async Task<ResultDto<ChatGroup>> GetGroupBy(string token)
         {
             var result = await Table<ChatGroup>()
+                .Include(c=>c.User).Include(c=>c.Reciver)
                 .FirstOrDefaultAsync(c => c.GroupToken == token);
             if (result == null)
             {
@@ -136,7 +138,13 @@ namespace Application.Service.Chats.ChatGroups
                     
                 };
                 Insert(newgroup);
-                await _userGroupsService.InsertInGroup(new List<long>() { UserId, ReciverId }, newgroup.Id);
+                await Save();
+               
+                return new ResultDto<ChatGroup>()
+                {
+                    IsSuccess = true,
+                    Data =  GetGroupBy(newgroup.Id).Result.Data
+                };
             }
             return new ResultDto<ChatGroup>()
             {

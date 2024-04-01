@@ -10,6 +10,5 @@ namespace Domain.Entites
         public virtual User User { get; set; }
         [ForeignKey("GroupId")]
         public virtual ChatGroup ChatGroup { get; set; }
-
     }
 }

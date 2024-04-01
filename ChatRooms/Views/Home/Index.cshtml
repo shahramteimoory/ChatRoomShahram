@@ -42,8 +42,12 @@
 
         </div> 
         <div class="footer"style="display:none" >
+            <a class="fileUpload">
+                <i class="fa fa-upload"></i>
+            </a>
             <form onsubmit="sendmessage(event)">
                 <input id="messageText" type="text" class="form-control" placeholder="متن خود را وارد کنید">
+                <input type="file" class="form-control">
                 <button class="btn btn-success">
                     ارسال
                     <i class="fa fa-send"></i>
@@ -93,107 +97,6 @@
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <script src="~/js/signalrcustom.js"></script>
     <script>
-        $(document).ready(function () {
-            if (Notification.permission !== "granted") {
-                Notification.requestPermission();
-            }
-        });
-        var connection = new signalR.HubConnectionBuilder().withUrl("/Chat").build();
-        var currentGroupId = 0;
-        var userId = 0;
-        connection.on("Welcome", function (id) {
-            userId = id;
-        });
-        connection.on("ReciveMesage", Recive);
-        function Recive(chat) {
 
-            $("#messageText").val('');
-            if (userId === chat.userId) {
-                $(".chats").append(`
-                    <div class="chat-me">
-                      <div class="chat">
-                       <p>${chat.chatBody}</p>
-                       <span>${chat.createDate}</span>
-                      </div>
-                    </div>
-                  `);
-            }
-            else {
-                $(".chats").append(`
-                    <div class="chat-you">
-                      <div class="chat">
-                       <span>${chat.personName}</span>
-                         <p>${chat.chatBody}</p>
-                        <span>${chat.createDate}</span>
-                      </div>
-                    </div>
-                  `);
-            }
-
-        }
-        connection.on("joinGroup", joined)
-        connection.on("NewGroup", appenGroup);
-        connection.on("ReciveNotification",sendNotification)
-        connection.start();
-
-        function sendNotification(chat) {
-            if (Notification.permission === "granted") {
-                console.log(currentGroupId);
-                console.log(chat.groupId);
-                if (currentGroupId !== chat.groupId) {
-                    var notification = new Notification(chat.groupName, {
-                        body: chat.chatBody,
-                    });
-                }
-            }
-        }
-        function joined(group, chats) {
-            $(".header").css("display", "block");
-            $(".footer").css("display", "block");
-            $(".header h2").html(group.groupTitle);
-            $(".header img").attr("src", "/GroupImage/" + group.imageName);
-            currentGroupId = group.id;
-            $(".chats").html("");
-            chats.forEach(function (element) {
-                if (userId === element.userId) {
-                    $(".chats").append(`
-                <div class="chat-me">
-                  <div class="chat">
-                    <p>${element.text}</p>
-                    <span>${element.date}</span>
-                  </div>
-                </div>
-              `);
-                } else {
-                    $(".chats").append(`
-                <div class="chat-you">
-                  <div class="chat">
-                    <span>${element.personName}</span>
-                    <br>
-                    <p>${element.text}</p>
-                    <span>${element.date}</span>
-                  </div>
-                </div>
-              `);
-                }
-            });
-        }
-        async function Start() {
-            try {
-                
-                await connection.start();
-                $(".disconnected").hide();
-            }
-            catch (e) {
-                $(".disconnected").show();
-                setTimeout(Start,3000);
-            }
-            
-        }
-        connection.onclose(Start);
-       
-        function joininGroup(token) {
-            connection.invoke("joinGroup", token, currentGroupId);
-        }
     </script>
 }

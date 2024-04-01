@@ -31,7 +31,7 @@ namespace Application.Service.Users.UserGroups
             try
             {
                 var result = await Table<UserGroup>().Include(g => g.ChatGroup.Chats).Include(c => c.ChatGroup.Reciver).Include(c => c.ChatGroup.User)
-                    .Where(g => g.UserId == UserId && !g.ChatGroup.IsPrivete).ToListAsync();
+                    .Where(g => g.UserId == UserId).ToListAsync();
                    
                 var model =new  List<UserGroup_Dto>();
                 foreach (var group in result)
