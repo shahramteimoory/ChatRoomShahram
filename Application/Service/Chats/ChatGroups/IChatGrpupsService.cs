@@ -219,4 +219,5 @@ namespace Application.Service.Chats.ChatGroups
         public string ImageName { get; set; }
         public bool IsUser { get; set; }
     }
+
 }

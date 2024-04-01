@@ -1,4 +1,5 @@
 ﻿using Application.Interface.FacadPatterns;
+using Application.Service.Chats;
 using ChatRooms.Utilities;
 using Domain.Entites;
 using Microsoft.AspNetCore.SignalR;
@@ -121,43 +122,33 @@ namespace ChatRooms.Hubs
 
         public async Task SendMessage(string text, long GroupId)
         {
-            var group =await _chatsFacad.ChatGrpupsService.GetGroupBy(GroupId);
-            if (!group.IsSuccess)
-            {
-                return;
-            }
-            var chat = new Chat()
-            {
-                ChatBody = text,
-                GroupId = GroupId,
-                createDate = DateTime.Now,
-                UserId = Context.User.GetUserId(),
+           // var group =await _chatsFacad.ChatGrpupsService.GetGroupBy(GroupId);
+           // if (!group.IsSuccess)
+           // {
+           //     return;
+           // }
+           // var chat = new Chat()
+           // {
+           //     ChatBody = text,
+           //     GroupId = GroupId,
+           //     createDate = DateTime.Now,
+           //     UserId = Context.User.GetUserId(),
 
-            };
-           await _chatsFacad.ChatService.SendMessage(chat);
-            var newchat = new ChatViewModel
-            {
-                ChatBody= chat.ChatBody,
-                GroupId= GroupId,
-                createDate=chat.createDate.ToString("HH:mm dd/MM"),
-                UserId=chat.UserId,
-                PersonName=Context.User.GetUserName(),
-                GroupName= group.Data.GroupTitle
-            };
-            var UserIds =await _userFacad.UserGroupsService.GetUserIds(GroupId);
-            await Clients.Users(UserIds.Data).SendAsync("ReciveNotification", newchat);
-           await Clients.Group(GroupId.ToString()).SendAsync("ReciveMesage", newchat);
+           // };
+           //await _chatsFacad.ChatService.SendMessage(chat);
+           // var newchat = new ChatViewModel
+           // {
+           //     ChatBody= chat.ChatBody,
+           //     GroupId= GroupId,
+           //     createDate=chat.createDate.ToString("HH:mm dd/MM"),
+           //     UserId=chat.UserId,
+           //     PersonName=Context.User.GetUserName(),
+           //     GroupName= group.Data.GroupTitle
+           // };
+
         }
     }
-    public class ChatViewModel
-    {
-        public string ChatBody { get; set; }
-        public string GroupName { get; set; }
-        public long GroupId { get; set; }
-        public string createDate { get; set; }
-        public string PersonName { get;set; }
-        public long UserId { get; set; }
-    }
+
     public interface IChatHub
     {
         Task joinGroup(string Token, long currentGroupId);

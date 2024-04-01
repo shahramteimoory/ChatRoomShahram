@@ -85,6 +85,24 @@ function joined(group, chats) {
         }
     });
 }
+
+function sendmessage(event) {
+    event.preventDefault();
+    var text = $("#messageText").val();
+    var file = event.target[1].files[0];
+    var formData = new FormData();
+    formData.append("groupId", currentGroupId);
+    formData.append("FileAttach", file);
+    formData.append("ChatBody", text);
+    $.ajax({
+        url: "/Home/SendMassage",
+        type: "post",
+        data: formData,
+        enctype: "multipart/form-data",
+        processData: false,
+        contentType: false
+    });
+}
 async function Start() {
     try {
 
@@ -111,16 +129,7 @@ function joinInnPrivateGroup(receiverId) {
     }
     
 }
-function sendmessage(event) {
-    event.preventDefault();
-    var text = $("#messageText").val();
-    if (text) {
-        connection.invoke("SendMessage", text, currentGroupId);
-    } else {
-        alert("Error")
-    }
-    
-}
+
 
 function appenGroup(groupName, Token, imageName) {
     if (groupName === "Error") {

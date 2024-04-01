@@ -5,6 +5,7 @@ namespace Domain.Entites
     public class Chat:BaseEntities
     {
         public string ChatBody { get; set; }
+        public string? FileAttach { get; set; }
         public long UserId { get; set; }
         public long GroupId { get; set; }
 
