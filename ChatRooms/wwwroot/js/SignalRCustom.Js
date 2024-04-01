@@ -14,17 +14,40 @@ function Recive(chat) {
 
     $("#messageText").val('');
     if (userId === chat.userId) {
-        $(".chats").append(`
+        if (chat.fileAttach!=null) {
+            $(".chats").append(`
                     <div class="chat-me">
                       <div class="chat">
-                       <p>${chat.chatBody}</p>
+                        <p><a href='/files/${chat.fileAttach}' target="_blank" >${chat.text}</a></p>
                        <span>${chat.createDate}</span>
                       </div>
                     </div>
-                  `);
+            `);
+        } else {
+                $(".chats").append(`
+                        <div class="chat-me">
+                            <div class="chat">
+                            <p>${chat.chatBody}</p>
+                            <span>${chat.createDate}</span>
+                            </div>
+                        </div>
+            `);
+                }
+
     }
     else {
-        $(".chats").append(`
+        if (chat.fileAttach != null) {
+            $(".chats").append(`
+                    <div class="chat-you">
+                      <div class="chat">
+                       <span>${chat.personName}</span>
+                         <p><a href='/files/${chat.fileAttach}' target="_blank" >${chat.text}</a></p>
+                        <span>${chat.createDate}</span>
+                      </div>
+                    </div>
+            `);
+        } else {
+            $(".chats").append(`
                     <div class="chat-you">
                       <div class="chat">
                        <span>${chat.personName}</span>
@@ -32,7 +55,9 @@ function Recive(chat) {
                         <span>${chat.createDate}</span>
                       </div>
                     </div>
-                  `);
+            `);
+        }
+
     }
 
 }
@@ -63,7 +88,18 @@ function joined(group, chats) {
     $(".chats").html("");
     chats.forEach(function (element) {
         if (userId === element.userId) {
-            $(".chats").append(`
+         /*   console.log(chats)*/
+            if (element.fileAttach!=null) {
+                $(".chats").append(`
+                <div class="chat-me">
+                  <div class="chat">
+                   <p><a href='/files/${element.fileAttach}' target="_blank" >${element.text}</a></p>
+                    <span>${element.date}</span>
+                  </div>
+                </div>
+              `);
+            } else {
+                $(".chats").append(`
                 <div class="chat-me">
                   <div class="chat">
                     <p>${element.text}</p>
@@ -71,8 +107,22 @@ function joined(group, chats) {
                   </div>
                 </div>
               `);
+            }
+
         } else {
-            $(".chats").append(`
+            if (element.fileAttach != null) {
+                $(".chats").append(`
+                <div class="chat-you">
+                  <div class="chat">
+                    <span>${element.personName}</span>
+                    <br>
+                     <p><a href='/files/${element.fileAttach}' target="_blank" >${element.text}</a></p>
+                    <span>${element.date}</span>
+                  </div>
+                </div>
+              `);
+            } else {
+                $(".chats").append(`
                 <div class="chat-you">
                   <div class="chat">
                     <span>${element.personName}</span>
@@ -82,9 +132,11 @@ function joined(group, chats) {
                   </div>
                 </div>
               `);
+            }
+
         }
     });
-}
+} 
 
 function sendmessage(event) {
     event.preventDefault();
@@ -101,6 +153,8 @@ function sendmessage(event) {
         enctype: "multipart/form-data",
         processData: false,
         contentType: false
+    }).done(function () {
+        $(".footer form input[type=file]").val('');
     });
 }
 async function Start() {
